@@ -1,18 +1,8 @@
 
 import { MongoClient } from "mongodb";
+import { env } from "./env.js";
 
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.DB_NAME;
-
-if (!uri) {
-  throw new Error("MONGODB_URI is missing from environment variables");
-}
-
-if (!dbName) {
-  throw new Error("DB_NAME is missing from environment variables");
-}
-
-const client = new MongoClient(uri);
+const client = new MongoClient(env.MONGODB_URI);
 
 let database;
 
@@ -20,11 +10,11 @@ export const connectDB = async () => {
   try {
     await client.connect();
 
-    database = client.db(dbName);
+    database = client.db(env.DB_NAME);
 
     await database.command({ ping: 1 });
 
-    console.log(`MongoDB connected: ${dbName}`);
+    console.log(`MongoDB connected: ${env.DB_NAME}`);
 
     return database;
   } catch (error) {
