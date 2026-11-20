@@ -7,6 +7,8 @@ import errorHandler from "./middlewares/error-handler.js";
 import { env } from "./config/env.js";
 import verifyToken from "./middlewares/verify-token.js";
 import userRoutes from "./modules/users/user.routes.js";
+import tuitionRoutes from "./modules/tuitions/tuition.routes.js";
+import applicationRoutes from "./modules/applications/application.routes.js";
 
 const app = express();
 
@@ -47,6 +49,12 @@ app.get("/api/health", async (req, res, next) => {
 
 // User routes
 app.use("/api/users", userRoutes);
+
+// Tuition routes
+app.use("/api/tuitions", tuitionRoutes);
+
+// Application routes
+app.use("/api/applications", applicationRoutes);
 
 // Handle unknown routes
 app.use((req, res) => {

@@ -13,7 +13,7 @@ export const userService = {
   async findUserById(id) {
     const db = getDB();
     const query = { _id: toQueryId(id) };
-    return await db.collection("users").findOne(query);
+    return await db.collection("user").findOne(query);
   },
 
   // Update profile fields (name, phone, bio, image)
@@ -30,7 +30,7 @@ export const userService = {
 
     filteredUpdate.updatedAt = new Date();
 
-    const result = await db.collection("users").findOneAndUpdate(
+    const result = await db.collection("user").findOneAndUpdate(
       { _id: toQueryId(id) },
       { $set: filteredUpdate },
       { returnDocument: "after" }
@@ -43,7 +43,7 @@ export const userService = {
   async getAllUsers() {
     const db = getDB();
     return await db
-      .collection("users")
+      .collection("user")
       .find({})
       .sort({ createdAt: -1 })
       .toArray();
@@ -57,7 +57,7 @@ export const userService = {
       throw new Error(`Invalid role: ${role}`);
     }
 
-    const result = await db.collection("users").findOneAndUpdate(
+    const result = await db.collection("user").findOneAndUpdate(
       { _id: toQueryId(id) },
       { $set: { role, updatedAt: new Date() } },
       { returnDocument: "after" }
