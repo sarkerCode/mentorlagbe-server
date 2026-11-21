@@ -9,6 +9,8 @@ import verifyToken from "./middlewares/verify-token.js";
 import userRoutes from "./modules/users/user.routes.js";
 import tuitionRoutes from "./modules/tuitions/tuition.routes.js";
 import applicationRoutes from "./modules/applications/application.routes.js";
+import paymentRoutes from "./modules/payments/payment.routes.js";
+import { paymentWebhook } from "./modules/payments/payment.webhook.js";
 
 const app = express();
 
@@ -18,6 +20,13 @@ app.use(
     origin: env.CLIENT_URL,
     credentials: true,
   })
+);
+
+// Stripe Webhook raw body endpoint (MUST be before express.json() for signature verification)
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  paymentWebhook.handleWebhook
 );
 
 // Parse JSON request body
@@ -55,6 +64,9 @@ app.use("/api/tuitions", tuitionRoutes);
 
 // Application routes
 app.use("/api/applications", applicationRoutes);
+
+// Payment & Subscription routes
+app.use("/api/payments", paymentRoutes);
 
 // Handle unknown routes
 app.use((req, res) => {
