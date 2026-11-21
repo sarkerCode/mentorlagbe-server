@@ -10,6 +10,7 @@ import userRoutes from "./modules/users/user.routes.js";
 import tuitionRoutes from "./modules/tuitions/tuition.routes.js";
 import applicationRoutes from "./modules/applications/application.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import { paymentWebhook } from "./modules/payments/payment.webhook.js";
 
 const app = express();
@@ -67,6 +68,9 @@ app.use("/api/applications", applicationRoutes);
 
 // Payment & Subscription routes
 app.use("/api/payments", paymentRoutes);
+
+// Dashboard Aggregation routes
+app.use("/api/dashboard", dashboardRoutes);
 
 // Handle unknown routes
 app.use((req, res) => {
