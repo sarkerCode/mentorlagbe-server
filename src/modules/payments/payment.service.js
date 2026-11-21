@@ -60,4 +60,90 @@ export const paymentService = {
       url: session.url,
     };
   },
+
+  // Verify Checkout Session & Fulfill Pro Membership
+  async verifyAndFulfillSession(sessionId) {
+    if (!sessionId) {
+      throw new Error("Stripe Session ID is required.");
+    }
+
+    const db = getDB();
+
+    // 1. Retrieve the session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["payment_intent"],
+    });
+
+    if (!session || session.payment_status !== "paid") {
+      throw new Error("Payment session has not been completed successfully.");
+    }
+
+    const userEmail = session.customer_email || session.metadata?.userEmail;
+    if (!userEmail) {
+      throw new Error("Subscriber email could not be identified from session metadata.");
+    }
+
+    const userName = session.metadata?.userName || "Subscriber";
+    const userRole = session.metadata?.userRole || "student";
+    const planName = session.metadata?.planName || "Pro Plan";
+    const amount = Number(session.metadata?.amount || (session.amount_total ? session.amount_total / 100 : 15));
+    const currency = session.currency || "usd";
+
+    const transactionId =
+      typeof session.payment_intent === "object" && session.payment_intent
+        ? session.payment_intent.id
+        : String(session.payment_intent || session.id);
+
+    // 2. Check if already recorded in singular 'payment' collection
+    const existingPayment = await db
+      .collection("payment")
+      .findOne({ stripeSessionId: session.id });
+
+    let paymentRecord = existingPayment;
+
+    if (!existingPayment) {
+      paymentRecord = {
+        userEmail,
+        userName,
+        userRole,
+        planName,
+        amount,
+        currency,
+        transactionId,
+        stripeSessionId: session.id,
+        paymentStatus: "paid",
+        paidAt: new Date(),
+      };
+
+      const insertResult = await db.collection("payment").insertOne(paymentRecord);
+      paymentRecord._id = insertResult.insertedId;
+    }
+
+    // 3. Upgrade user plan: 'pro' in singular 'user' collection
+    await db.collection("user").updateOne(
+      { email: userEmail },
+      {
+        $set: {
+          plan: "pro",
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    return {
+      payment: paymentRecord,
+      userEmail,
+      plan: "pro",
+    };
+  },
+
+  // Get all transaction logs for Admin
+  async getAllPayments() {
+    const db = getDB();
+    return await db
+      .collection("payment")
+      .find({})
+      .sort({ paidAt: -1 })
+      .toArray();
+  },
 };
