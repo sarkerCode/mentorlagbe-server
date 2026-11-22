@@ -41,21 +41,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// API health check
-app.get("/api/health", async (req, res, next) => {
-  try {
-    await getDB().command({ ping: 1 });
 
-    res.status(200).json({
-      success: true,
-      message: "MentorLagbe API is healthy",
-      database: "connected",
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 // User routes
 app.use("/api/users", userRoutes);
